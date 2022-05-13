@@ -42,16 +42,6 @@ Run the Mocha/Chai tests:
 $ yarn test
 ```
 
-### How to call contract from hardhat console
-
-```
-const provider = new ethers.providers.JsonRpcProvider() // using default http://localhost:8545
-const signer = new ethers.Wallet(privkey, provider)
-const osSkill = await ethers.getContractAt('OsSkill', contractAddress, signer)
-const out = await osSkill.balanceOf(walletAddress) // or any contract's function
-console.log(out)
-```
-
 ### Hardhat Commands
 
 ```shell
