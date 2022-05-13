@@ -1,5 +1,5 @@
 {
-  "name": "@my-app/monorepo",
+  "name": "@tandem/core-v1",
   "version": "1.0.0",
   "keywords": [
     "ethereum",
@@ -9,15 +9,11 @@
   ],
   "private": true,
   "scripts": {
-    "subgraph:auth": "yarn workspace @my-app/subgraph auth",
-    "subgraph:codegen": "yarn workspace @my-app/subgraph codegen",
-    "subgraph:build": "yarn workspace @my-app/subgraph build",
-    "subgraph:deploy": "yarn workspace @my-app/subgraph deploy",
-    "react-app:build": "yarn workspace @my-app/react-app build",
-    "react-app:eject": "yarn workspace @my-app/react-app eject",
-    "react-app:ipfs": "yarn workspace @my-app/react-app ipfs",
-    "react-app:start": "yarn workspace @my-app/react-app start",
-    "react-app:test": "yarn workspace @my-app/react-app test"
+    "react-app:build": "yarn workspace @tandem/react-app build",
+    "react-app:eject": "yarn workspace @tandem/react-app eject",
+    "react-app:ipfs": "yarn workspace @tandem/react-app ipfs",
+    "react-app:start": "yarn workspace @tandem/react-app start",
+    "react-app:test": "yarn workspace @tandem/react-app test"
   },
   "workspaces": {
     "packages": [
