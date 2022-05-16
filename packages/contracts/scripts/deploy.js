@@ -1,16 +1,20 @@
-async function main() {
-    // We get the contract to deploy
-    const Greeter = await ethers.getContractFactory("Greeter");
-    const greeter = await Greeter.deploy("Hello, Hardhat!");
+const main = async () => {
+  const Swapper = await ethers.getContractFactory("Swapper");
+  const swapper = await Swapper.deploy();
+
+  await swapper.deployed();
+
+  console.log("Swapper deployed to:", swapper.address);
+}
   
-    await greeter.deployed();
-  
-    console.log("Greeter deployed to:", greeter.address);
+const runMain = async () => {
+  try {
+    await main()
+    process.exit(0)
+  } catch (error) {
+    console.log(error)
+    process.exit(1)
   }
-  
-  main()
-    .then(() => process.exit(0))
-    .catch((error) => {
-      console.error(error);
-      process.exit(1);
-    });
+}
+
+runMain()
