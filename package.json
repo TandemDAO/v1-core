@@ -1,6 +1,7 @@
 {
   "name": "@tandem/core-v1",
   "version": "1.0.0",
+  "license": "MIT",
   "keywords": [
     "ethereum",
     "react",
@@ -9,15 +10,33 @@
   ],
   "private": true,
   "scripts": {
+    "postinstall": "husky install",
+    "lint": "yarn lint:sol && yarn prettier:check",
+    "lint:sol": "solhint --config ./.solhint.json \"contracts/**/*.sol\"",
+    "prettier": "prettier --config ./.prettierrc.yaml --write \"**/*.{js,json,md,sol,ts}\"",
+    "prettier:check": "prettier --check --config ./.prettierrc.yaml \"**/*.{js,json,md,sol,ts}\"",
     "react-app:build": "yarn workspace @tandem/react-app build",
     "react-app:eject": "yarn workspace @tandem/react-app eject",
     "react-app:ipfs": "yarn workspace @tandem/react-app ipfs",
     "react-app:start": "yarn workspace @tandem/react-app start",
     "react-app:test": "yarn workspace @tandem/react-app test"
   },
+  "packageManager": "yarn@3.1.1",
   "workspaces": {
     "packages": [
       "packages/*"
     ]
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "devDependencies": {
+    "@commitlint/config-conventional": "^16.2.4",
+    "husky": "^8.0.1",
+    "lint-staged": "^12.4.1",
+    "prettier": "^2.6.2",
+    "prettier-plugin-solidity": "^1.0.0-beta.19",
+    "solhint": "^3.3.7",
+    "solhint-plugin-prettier": "^0.0.5"
   }
 }
