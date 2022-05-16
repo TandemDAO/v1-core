@@ -10,6 +10,7 @@
   ],
   "private": true,
   "scripts": {
+    "hardhat:test": "yarn workspace @tandem/hardhat hardhat test",
     "postinstall": "husky install",
     "lint": "yarn lint:sol && yarn prettier:check",
     "lint:sol": "solhint --config ./.solhint.json \"contracts/**/*.sol\"",

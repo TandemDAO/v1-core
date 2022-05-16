@@ -26,3 +26,7 @@ packages/subgraph/src/types/
 
 # vscode conf
 .vscode/
+
+# hardhat
+packages/hardhat/artifacts*
+packages/hardhat/cache*
