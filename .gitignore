@@ -21,11 +21,6 @@ yarn-debug.log*
 yarn-error.log*
 .yarn/*
 
-
-# subgraph
-packages/subgraph/build/
-packages/subgraph/src/types/
-
 # vscode conf
 .vscode/
 

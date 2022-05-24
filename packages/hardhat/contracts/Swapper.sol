@@ -37,7 +37,7 @@ contract Swapper is ISwapper {
         uint256 amount2,
         uint256 vesting,
         uint256 deadline
-    ) external override returns (bool, uint256) {
+    ) external override returns (uint256) {
         uint256 id = _dealId.current();
         _deals[id] = Deal({
             account1: account1,
@@ -57,32 +57,27 @@ contract Swapper is ISwapper {
 
         emit DealCreated(account1, token1, amount1, account2, token2, amount2, block.number, vesting, deadline);
 
-        return (true, id);
+        return (id);
     }
 
     function approve(uint256 id) external override returns (bool) {
         Deal storage deal = _deals[id];
-
+        require(deal.status == Status.Pending, 'Swapper: deal is no longer pending');
         require(msg.sender == deal.account1 || msg.sender == deal.account2, 'Swapper: caller not allowed');
 
         if (msg.sender == deal.account1) {
-            if (deal.account1Approved) {
-                revert('Swapper: caller has already approved the deal');
-            }
+            require(!deal.account1Approved, 'Swapper: caller has already approved the deal');
             _transfer(msg.sender, deal.token1, deal.amount1);
             deal.account1Approved = true;
-            emit DealApproved(id, msg.sender);
         } else {
-            if (deal.account2Approved) {
-                revert('Swapper: caller has already approved the deal');
-            }
+            require(!deal.account2Approved, 'Swapper: caller has already approved the deal');
             _transfer(msg.sender, deal.token2, deal.amount2);
             deal.account2Approved = true;
-            emit DealApproved(id, msg.sender);
         }
 
         if (deal.account1Approved && deal.account2Approved) {
             deal.status = Status.Approved;
+            emit DealApproved(id, msg.sender);
         }
 
         return true;
@@ -94,8 +89,8 @@ contract Swapper is ISwapper {
         require(deal.status == Status.Approved, 'Swapper: the deal has not been approved by both parties');
         require(block.number >= deal.startDate + deal.vesting, 'Swapper: vesting period is not over');
 
-        IERC20(deal.token1).transfer(deal.account2, deal.amount1);
-        IERC20(deal.token2).transfer(deal.account1, deal.amount2);
+        _withdraw(deal.account1, deal.account2, deal.token1, deal.amount1);
+        _withdraw(deal.account2, deal.account1, deal.token2, deal.amount2);
 
         deal.status = Status.Claimed;
 
@@ -110,12 +105,11 @@ contract Swapper is ISwapper {
         require(deal.status == Status.Pending, 'Swapper: deal is no longer pending');
         require(block.number >= deal.startDate + deal.deadline, 'Swapper: acceptance period is not over');
 
-        if (IERC20(deal.token1).balanceOf(address(this)) >= deal.amount1) {
-            IERC20(deal.token1).transfer(deal.account1, deal.amount1);
+        if (deal.account1Approved) {
+            _withdraw(deal.account1, deal.account1, deal.token1, deal.amount1);
         }
-
-        if (IERC20(deal.token2).balanceOf(address(this)) >= deal.amount2) {
-            IERC20(deal.token2).transfer(deal.account2, deal.amount2);
+        if (deal.account2Approved) {
+            _withdraw(deal.account2, deal.account2, deal.token2, deal.amount2);
         }
 
         deal.status = Status.Canceled;
@@ -137,5 +131,18 @@ contract Swapper is ISwapper {
         require(success, 'Swapper: token transfer has failed');
 
         _balances[account][token] = amount;
+    }
+
+    function _withdraw(
+        address from,
+        address to,
+        address token,
+        uint256 amount
+    ) private {
+        require(_balances[from][token] >= amount, 'Swapper: not enough token in balance');
+
+        _balances[from][token] = _balances[from][token] - amount;
+
+        IERC20(token).transfer(to, amount);
     }
 }
