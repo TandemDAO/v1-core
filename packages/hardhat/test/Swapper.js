@@ -82,7 +82,7 @@ describe('Swapper', function () {
     })
 
     it('should be able to cancel after the deadline is reached', async () => {
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 6; i++) {
         await hre.ethers.provider.send('evm_mine')
       }
 
@@ -194,6 +194,122 @@ describe('Swapper', function () {
       // Contract's token balance is zero
       expect(await tokenA.balanceOf(swapper.address)).to.equal(0)
       expect(await tokenB.balanceOf(swapper.address)).to.equal(0)
+    })
+  })
+
+  describe('claim tokens', () => {
+    describe('when deal is Pending', () => {
+      beforeEach(async () => {
+        await swapper
+          .connect(proposer)
+          .propose(
+            holderA.address,
+            tokenA.address,
+            tokenASwapAmount,
+            holderB.address,
+            tokenB.address,
+            tokenBSwapAmount,
+            0,
+            4,
+          )
+        await tokenA.connect(holderA).approve(swapper.address, tokenASwapAmount)
+        await tokenB.connect(holderB).approve(swapper.address, tokenBSwapAmount)
+        await swapper.connect(holderA).approve(0)
+      })
+      it('should revert if status is pending', async () => {
+        await expect(swapper.connect(holderA).claimVested(0)).to.be.revertedWith('Swapper: deal must be Approved')
+      })
+    })
+
+    describe('when deadline not past', () => {
+      beforeEach(async () => {
+        await swapper
+          .connect(proposer)
+          .propose(
+            holderA.address,
+            tokenA.address,
+            tokenASwapAmount,
+            holderB.address,
+            tokenB.address,
+            tokenBSwapAmount,
+            2,
+            10,
+          )
+        await tokenA.connect(holderA).approve(swapper.address, tokenASwapAmount)
+        await tokenB.connect(holderB).approve(swapper.address, tokenBSwapAmount)
+        await swapper.connect(holderA).approve(0)
+        await swapper.connect(holderB).approve(0)
+      })
+      it('should revert because deadline is not past', async () => {
+        await expect(swapper.connect(holderA).claimVested(0)).to.be.revertedWith('Swapper: deadline is not past')
+      })
+    })
+
+    describe('when vesting is 0', () => {
+      beforeEach(async () => {
+        await swapper
+          .connect(proposer)
+          .propose(
+            holderA.address,
+            tokenA.address,
+            tokenASwapAmount,
+            holderB.address,
+            tokenB.address,
+            tokenBSwapAmount,
+            0,
+            4,
+          )
+        await tokenA.connect(holderA).approve(swapper.address, tokenASwapAmount)
+        await tokenB.connect(holderB).approve(swapper.address, tokenBSwapAmount)
+        await swapper.connect(holderA).approve(0)
+        await swapper.connect(holderB).approve(0)
+      })
+      it('should revert if caller is not one the accounts', async () => {
+        await expect(swapper.connect(proposer).claimVested(0)).to.be.revertedWith('Swapper: caller not allowed')
+      })
+      it(`should return the full tokenB amount (${tokenBSwapAmount})`, async () => {
+        await hre.ethers.provider.send('evm_mine')
+        expect(await swapper.connect(holderA).callStatic.claimVested(0)).to.equal(tokenBSwapAmount)
+      })
+      it(`should return the full tokenA amount (${tokenASwapAmount})`, async () => {
+        await hre.ethers.provider.send('evm_mine')
+        expect(await swapper.connect(holderB).callStatic.claimVested(0)).to.equal(tokenASwapAmount)
+      })
+      it('should emit the dealClaimed event', async () => {
+        await swapper.connect(holderA).claimVested(0)
+
+        await expect(swapper.connect(holderB).claimVested(0))
+          .to.emit(swapper, 'DealClaimed')
+          .withArgs(0, holderB.address)
+      })
+    })
+
+    describe('when vesting is > 0', () => {
+      beforeEach(async () => {
+        await swapper
+          .connect(proposer)
+          .propose(
+            holderA.address,
+            tokenA.address,
+            tokenASwapAmount,
+            holderB.address,
+            tokenB.address,
+            tokenBSwapAmount,
+            5,
+            5,
+          )
+        await tokenA.connect(holderA).approve(swapper.address, tokenASwapAmount)
+        await tokenB.connect(holderB).approve(swapper.address, tokenBSwapAmount)
+        await swapper.connect(holderA).approve(0)
+        await swapper.connect(holderB).approve(0)
+      })
+      it('should return the vested amount for first block', async () => {
+        // 4 blocks + 1 block mined = 5 blocks
+        for (let i = 0; i < 2; i++) {
+          await hre.ethers.provider.send('evm_mine')
+        }
+        expect(await swapper.connect(holderB).callStatic.claimVested(0)).to.equal(tokenASwapAmount / 5)
+      })
     })
   })
 })

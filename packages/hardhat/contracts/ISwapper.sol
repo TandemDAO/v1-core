@@ -10,6 +10,7 @@ interface ISwapper {
     }
 
     event DealCreated(
+        uint256 dealId,
         address account1,
         address token1,
         uint256 amount1,
@@ -71,7 +72,7 @@ interface ISwapper {
      *
      * Emits a {DealClaimed} event.
      */
-    function claim(uint256 id) external returns (bool);
+    function claimVested(uint256 id) external returns (uint256);
 
     /**
      * @dev Cancel the Deal proposal after the acceptance period is over.
