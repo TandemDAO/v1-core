@@ -48,7 +48,7 @@ interface ISwapper {
         uint256 amount2,
         uint256 vesting,
         uint256 deadline
-    ) external returns (bool, uint256);
+    ) external returns (uint256);
 
     /**
      * @dev Update the Deal status to `Approved` after Transfer token of

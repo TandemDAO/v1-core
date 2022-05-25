@@ -10,6 +10,7 @@
   ],
   "private": true,
   "scripts": {
+    "hardhat:compile": "yarn workspace @tandem/hardhat hardhat compile",
     "hardhat:test": "yarn workspace @tandem/hardhat hardhat test",
     "postinstall": "husky install",
     "lint": "yarn lint:sol && yarn prettier:check",
