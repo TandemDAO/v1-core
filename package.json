@@ -10,6 +10,8 @@
   ],
   "private": true,
   "scripts": {
+    "hardhat:compile": "yarn workspace @tandem/hardhat hardhat compile",
+    "hardhat:test": "yarn workspace @tandem/hardhat hardhat test",
     "postinstall": "husky install",
     "lint": "yarn lint:sol && yarn prettier:check",
     "lint:sol": "solhint --config ./.solhint.json \"contracts/**/*.sol\"",
@@ -21,7 +23,7 @@
     "react-app:start": "yarn workspace @tandem/react-app start",
     "react-app:test": "yarn workspace @tandem/react-app test"
   },
-  "packageManager": "yarn@3.1.1",
+  "packageManager": "yarn@3.2.1",
   "workspaces": {
     "packages": [
       "packages/*"
