@@ -1,12 +1,12 @@
 const main = async () => {
-  const Swapper = await ethers.getContractFactory("Swapper");
-  const swapper = await Swapper.deploy();
+  const Swapper = await ethers.getContractFactory('Swapper')
+  const swapper = await Swapper.deploy()
 
-  await swapper.deployed();
+  await swapper.deployed()
 
-  console.log("Swapper deployed to:", swapper.address);
+  console.log('Swapper deployed to:', swapper.address)
 }
-  
+
 const runMain = async () => {
   try {
     await main()
