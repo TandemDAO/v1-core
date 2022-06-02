@@ -4,11 +4,12 @@ pragma solidity ^0.8.6;
 import './ISwapper.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/utils/Counters.sol';
+import 'hardhat/console.sol';
 
 contract Swapper is ISwapper {
     using Counters for Counters.Counter;
     Counters.Counter private _dealId;
-
+    mapping(uint256 => mapping(address => uint256)) private _withdrawals;
     // TODO: refacto this ugly struct
     struct Deal {
         address account1;
@@ -55,7 +56,7 @@ contract Swapper is ISwapper {
         });
         _dealId.increment();
 
-        emit DealCreated(account1, token1, amount1, account2, token2, amount2, block.number, vesting, deadline);
+        emit DealCreated(id, account1, token1, amount1, account2, token2, amount2, block.number, vesting, deadline);
 
         return (id);
     }
@@ -83,22 +84,6 @@ contract Swapper is ISwapper {
         return true;
     }
 
-    function claim(uint256 id) external override returns (bool) {
-        Deal storage deal = _deals[id];
-
-        require(deal.status == Status.Approved, 'Swapper: the deal has not been approved by both parties');
-        require(block.number >= deal.startDate + deal.vesting, 'Swapper: vesting period is not over');
-
-        _withdraw(deal.account1, deal.account2, deal.token1, deal.amount1);
-        _withdraw(deal.account2, deal.account1, deal.token2, deal.amount2);
-
-        deal.status = Status.Claimed;
-
-        emit DealClaimed(id, msg.sender);
-
-        return true;
-    }
-
     function cancel(uint256 id) external override returns (bool) {
         Deal storage deal = _deals[id];
 
@@ -117,6 +102,46 @@ contract Swapper is ISwapper {
         emit DealCanceled(id, msg.sender);
 
         return true;
+    }
+
+    function claim(uint256 id) external override returns (uint256) {
+        Deal storage deal = _deals[id];
+
+        require(deal.startDate + deal.deadline <= block.number, 'Swapper: deadline is not past');
+        require(deal.status == Status.Approved, 'Swapper: deal must be Approved');
+        require(msg.sender == deal.account1 || msg.sender == deal.account2, 'Swapper: caller not allowed');
+
+        address account = msg.sender == deal.account1 ? deal.account1 : deal.account2;
+        uint256 dealAmount = msg.sender == deal.account1 ? deal.amount2 : deal.amount1;
+        address token = msg.sender == deal.account1 ? deal.token2 : deal.token1;
+        require(_withdrawals[id][account] < dealAmount, 'Swapper: amount already claimed');
+
+        uint256 amount;
+
+        if (deal.vesting > 0) {
+            uint256 deadlineBlock = deal.startDate + deal.deadline;
+            uint256 vestedBlock = deal.startDate + deal.deadline + deal.vesting;
+            uint256 blocks = block.number >= vestedBlock ? deal.vesting : block.number - deadlineBlock;
+            amount = ((dealAmount / deal.vesting) * blocks) - _withdrawals[id][account];
+
+            if (block.number >= vestedBlock) {
+                amount += dealAmount - _withdrawals[id][account] - amount;
+            }
+        } else {
+            amount = dealAmount;
+        }
+
+        _withdrawals[id][account] += amount;
+
+        if (_withdrawals[id][deal.account1] == deal.amount2 && _withdrawals[id][deal.account2] == deal.amount1) {
+            deal.status = Status.Claimed;
+            emit DealClaimed(id, msg.sender);
+        }
+
+        bool success = IERC20(token).transfer(account, amount);
+        require(success, 'Swapper: token transfer has failed');
+
+        return amount;
     }
 
     function _transfer(
