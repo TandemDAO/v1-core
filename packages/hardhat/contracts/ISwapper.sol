@@ -11,9 +11,11 @@ interface ISwapper {
 
     event DealCreated(
         uint256 dealId,
+        address executor1,
         address account1,
         address token1,
         uint256 amount1,
+        address executor2,
         address account2,
         address token2,
         uint256 amount2,
@@ -41,9 +43,11 @@ interface ISwapper {
      * Emits a {DealCreated} event.
      */
     function propose(
+        address executor1,
         address account1,
         address token1,
         uint256 amount1,
+        address executor2,
         address account2,
         address token2,
         uint256 amount2,
