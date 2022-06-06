@@ -10,7 +10,7 @@ const tokenASwapAmount = 100,
 
 describe('Swapper', function () {
   beforeEach(async function () {
-    ;[owner, proposer, holderA, holderB] = await ethers.getSigners()
+    ;[owner, proposer, holderA, holderB, executorA, executorB] = await ethers.getSigners()
 
     const swapperFactory = await ethers.getContractFactory('Swapper')
     swapper = await swapperFactory.deploy()
@@ -36,9 +36,11 @@ describe('Swapper', function () {
       const tx = await swapper
         .connect(proposer)
         .propose(
+          executorA.address,
           holderA.address,
           tokenA.address,
           tokenASwapAmount,
+          executorB.address,
           holderB.address,
           tokenB.address,
           tokenBSwapAmount,
@@ -56,9 +58,11 @@ describe('Swapper', function () {
       await swapper
         .connect(proposer)
         .propose(
+          executorA.address,
           holderA.address,
           tokenA.address,
           tokenASwapAmount,
+          executorB.address,
           holderB.address,
           tokenB.address,
           tokenBSwapAmount,
@@ -116,9 +120,11 @@ describe('Swapper', function () {
       await swapper
         .connect(proposer)
         .propose(
+          executorA.address,
           holderA.address,
           tokenA.address,
           tokenASwapAmount,
+          executorB.address,
           holderB.address,
           tokenB.address,
           tokenBSwapAmount,
@@ -151,9 +157,11 @@ describe('Swapper', function () {
         await swapper
           .connect(proposer)
           .propose(
+            executorA.address,
             holderA.address,
             tokenA.address,
             tokenASwapAmount,
+            executorB.address,
             holderB.address,
             tokenB.address,
             tokenBSwapAmount,
@@ -165,7 +173,7 @@ describe('Swapper', function () {
         await swapper.connect(holderA).approve(0)
       })
       it('should revert if status is pending', async () => {
-        await expect(swapper.connect(holderA).claim(0)).to.be.revertedWith('Swapper: deal must be Approved')
+        await expect(swapper.connect(executorA).claim(0)).to.be.revertedWith('Swapper: deal must be Approved')
       })
     })
 
@@ -174,9 +182,11 @@ describe('Swapper', function () {
         await swapper
           .connect(proposer)
           .propose(
+            executorA.address,
             holderA.address,
             tokenA.address,
             tokenASwapAmount,
+            executorB.address,
             holderB.address,
             tokenB.address,
             tokenBSwapAmount,
@@ -189,7 +199,7 @@ describe('Swapper', function () {
         await swapper.connect(holderB).approve(0)
       })
       it('should revert because deadline is not past', async () => {
-        await expect(swapper.connect(holderA).claim(0)).to.be.revertedWith('Swapper: deadline is not past')
+        await expect(swapper.connect(executorA).claim(0)).to.be.revertedWith('Swapper: deadline is not past')
       })
     })
 
@@ -198,9 +208,11 @@ describe('Swapper', function () {
         await swapper
           .connect(proposer)
           .propose(
+            executorA.address,
             holderA.address,
             tokenA.address,
             tokenASwapAmount,
+            executorB.address,
             holderB.address,
             tokenB.address,
             tokenBSwapAmount,
@@ -217,16 +229,16 @@ describe('Swapper', function () {
       })
       it(`should return the full tokenB amount (${tokenBSwapAmount})`, async () => {
         await hre.ethers.provider.send('evm_mine')
-        expect(await swapper.connect(holderA).callStatic.claim(0)).to.equal(tokenBSwapAmount)
+        expect(await swapper.connect(executorA).callStatic.claim(0)).to.equal(tokenBSwapAmount)
       })
       it(`should return the full tokenA amount (${tokenASwapAmount})`, async () => {
         await hre.ethers.provider.send('evm_mine')
-        expect(await swapper.connect(holderB).callStatic.claim(0)).to.equal(tokenASwapAmount)
+        expect(await swapper.connect(executorB).callStatic.claim(0)).to.equal(tokenASwapAmount)
       })
       it('should emit the dealClaimed event', async () => {
-        await swapper.connect(holderA).claim(0)
+        await swapper.connect(executorA).claim(0)
 
-        await expect(swapper.connect(holderB).claim(0)).to.emit(swapper, 'DealClaimed').withArgs(0, holderB.address)
+        await expect(swapper.connect(executorB).claim(0)).to.emit(swapper, 'DealClaimed').withArgs(0, holderB.address)
       })
     })
 
@@ -235,9 +247,11 @@ describe('Swapper', function () {
         await swapper
           .connect(proposer)
           .propose(
+            executorA.address,
             holderA.address,
             tokenA.address,
             tokenASwapAmount,
+            executorB.address,
             holderB.address,
             tokenB.address,
             tokenBSwapAmount,
@@ -254,12 +268,12 @@ describe('Swapper', function () {
         for (let i = 0; i < 2; i++) {
           await hre.ethers.provider.send('evm_mine')
         }
-        expect(await swapper.connect(holderB).callStatic.claim(0)).to.equal(tokenASwapAmount / 5)
+        expect(await swapper.connect(executorB).callStatic.claim(0)).to.equal(tokenASwapAmount / 5)
       })
       it(`should transfer ${tokenBSwapAmount / 5} tokens within ERC20`, async () => {
         await hre.ethers.provider.send('evm_mine')
 
-        await swapper.connect(holderA).claim(0)
+        await swapper.connect(executorA).claim(0)
 
         // Holders now own each other's tokens
         expect(await tokenB.balanceOf(holderA.address)).to.equal(tokenBSwapAmount / 5)

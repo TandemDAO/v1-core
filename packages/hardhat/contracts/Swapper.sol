@@ -12,6 +12,8 @@ contract Swapper is ISwapper {
     mapping(uint256 => mapping(address => uint256)) private _withdrawals;
     // TODO: refacto this ugly struct
     struct Deal {
+        address executor1;
+        address executor2;
         address account1;
         address account2;
         address token1;
@@ -30,9 +32,11 @@ contract Swapper is ISwapper {
     mapping(address => mapping(address => uint256)) private _balances;
 
     function propose(
+        address executor1,
         address account1,
         address token1,
         uint256 amount1,
+        address executor2,
         address account2,
         address token2,
         uint256 amount2,
@@ -41,6 +45,8 @@ contract Swapper is ISwapper {
     ) external override returns (uint256) {
         uint256 id = _dealId.current();
         _deals[id] = Deal({
+            executor1: executor1,
+            executor2: executor2,
             account1: account1,
             account2: account2,
             token1: token1,
@@ -56,7 +62,20 @@ contract Swapper is ISwapper {
         });
         _dealId.increment();
 
-        emit DealCreated(id, account1, token1, amount1, account2, token2, amount2, block.number, vesting, deadline);
+        emit DealCreated(
+            id,
+            executor1,
+            account1,
+            token1,
+            amount1,
+            executor2,
+            account2,
+            token2,
+            amount2,
+            block.number,
+            vesting,
+            deadline
+        );
 
         return (id);
     }
@@ -109,11 +128,11 @@ contract Swapper is ISwapper {
 
         require(deal.startDate + deal.deadline <= block.number, 'Swapper: deadline is not past');
         require(deal.status == Status.Approved, 'Swapper: deal must be Approved');
-        require(msg.sender == deal.account1 || msg.sender == deal.account2, 'Swapper: caller not allowed');
+        require(msg.sender == deal.executor1 || msg.sender == deal.executor2, 'Swapper: caller not allowed');
 
-        address account = msg.sender == deal.account1 ? deal.account1 : deal.account2;
-        uint256 dealAmount = msg.sender == deal.account1 ? deal.amount2 : deal.amount1;
-        address token = msg.sender == deal.account1 ? deal.token2 : deal.token1;
+        address account = msg.sender == deal.executor1 ? deal.account1 : deal.account2;
+        uint256 dealAmount = msg.sender == deal.executor1 ? deal.amount2 : deal.amount1;
+        address token = msg.sender == deal.executor1 ? deal.token2 : deal.token1;
         require(_withdrawals[id][account] < dealAmount, 'Swapper: amount already claimed');
 
         uint256 amount;
@@ -135,7 +154,7 @@ contract Swapper is ISwapper {
 
         if (_withdrawals[id][deal.account1] == deal.amount2 && _withdrawals[id][deal.account2] == deal.amount1) {
             deal.status = Status.Claimed;
-            emit DealClaimed(id, msg.sender);
+            emit DealClaimed(id, account);
         }
 
         bool success = IERC20(token).transfer(account, amount);
