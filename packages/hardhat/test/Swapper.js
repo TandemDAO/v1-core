@@ -172,6 +172,7 @@ describe('Swapper', function () {
         await tokenB.connect(holderB).approve(swapper.address, tokenBSwapAmount)
         await swapper.connect(holderA).approve(0)
       })
+
       it('should revert if status is pending', async () => {
         await expect(swapper.connect(executorA).claim(0)).to.be.revertedWith('Swapper: deal must be Approved')
       })
@@ -198,6 +199,7 @@ describe('Swapper', function () {
         await swapper.connect(holderA).approve(0)
         await swapper.connect(holderB).approve(0)
       })
+
       it('should revert because deadline is not past', async () => {
         await expect(swapper.connect(executorA).claim(0)).to.be.revertedWith('Swapper: deadline is not past')
       })
