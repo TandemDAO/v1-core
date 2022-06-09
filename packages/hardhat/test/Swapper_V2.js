@@ -1,10 +1,7 @@
 const { expect } = require('chai')
-const { assert } = require('console')
 const { ethers } = require('hardhat')
-const { isRegExp } = require('lodash')
-const { MockProvider, deployMockContract, deployContract } = require('ethereum-waffle')
+const { MockProvider, deployMockContract } = require('ethereum-waffle')
 const ERC20 = require('../artifacts/contracts/Token.sol/Token.json')
-const Swapper = require('../artifacts/contracts/Swapper.sol/Swapper.json')
 
 let owner, proposer, memberA, memberB
 let swapper, mockTokenA, mockTokenB
@@ -14,21 +11,17 @@ const tokenASwapAmount = 100,
 
 describe('Swapper', function () {
   beforeEach(async () => {
-    ;[owner, proposer, memberA, memberB, executorA, executorB] = new MockProvider().getWallets()
-    //await ethers.getSigners();
+    ;[owner, proposer, memberA, memberB, executorA, executorB] = await ethers.getSigners()
+
     mockTokenA = await deployMockContract(owner, ERC20.abi)
     mockTokenB = await deployMockContract(owner, ERC20.abi)
 
     const swapperFactory = await ethers.getContractFactory('Swapper')
     swapper = await swapperFactory.deploy()
     await swapper.deployed()
-
-    // swapper = await deployContract(owner, Swapper, []);
-    // console.log("Swapper contract", swapper);
   })
 
   describe('cancel()', () => {
-    //const {arbitrary, memberA, memberB, mockTokenA, mockTokenB, contract} = await setup();
     beforeEach(async () => {
       await swapper
         .connect(proposer)
@@ -39,14 +32,14 @@ describe('Swapper', function () {
           tokenASwapAmount,
           executorB.address,
           memberB.address,
-          mockTokenA.address,
+          mockTokenB.address,
           tokenBSwapAmount,
           0,
           4,
         )
     })
 
-    describe('when status is not pending', () => {
+    describe('when status is NOT pending', () => {
       it('should revert', async () => {
         await mockTokenA.mock.allowance.returns(ethers.utils.parseEther(tokenASwapAmount.toString()))
         await mockTokenB.mock.allowance.returns(ethers.utils.parseEther(tokenBSwapAmount.toString()))
@@ -60,42 +53,36 @@ describe('Swapper', function () {
       })
     })
 
-    // describe('when status is not pending', async () => {
+    describe('when status is pending', () => {
+      describe('when acceptance period is NOT past', () => {
+        it('should revert', async () => {
+          await expect(swapper.cancel(0)).to.be.revertedWith('Swapper: acceptance period is not over')
+        })
+      })
 
-    //   describe('when deadline is not past', async () => {
-    //     // it should revert
-    //   })
+      describe('when acceptance period is past', () => {
+        beforeEach(async () => {
+          for (let i = 0; i < 4; i++) {
+            await hre.ethers.provider.send('evm_mine')
+          }
+        })
 
-    //   describe('when deadline is past', async () => {
+        describe('when member A has NOT approved', () => {
+          describe('when member2 has NOT approved', () => {
+            it('should emit deal canceled event', async () => {
+              await expect(swapper.cancel(0)).to.emit(swapper, 'DealCanceled')
+            })
+          })
 
-    //     describe('when tokenA not deposited', async () => {
-
-    //       describe('when tokenB not deposited', async () => {
-    //         // it should change state, emit event, check balance
-    //       })
-
-    //       describe('when tokenB deposited', async () => {
-    //         describe('when transfer failed', async () => {
-    //           // revert
-    //         })
-
-    //         describe('when transfer successful', async () => {
-    //           // change state, emit event, tokenB balance is 0
-    //         })
-    //       })
-    //     })
-
-    //     describe('when tokenA deposited', async () => {
-
-    //       describe('when tokenB not deposited', async () => {
-
-    //       })
-
-    //       describe('when tokenB deposited', async () => {
-
-    //       })
-    //     })
-    //   })
-    // })
+          describe('when member2 has approved', () => {
+            // beforeEach(() => {
+            // })
+            // it('should emit deal canceled event', async () => {
+            //   await expect(swapper.cancel(0)).to.emit(swapper, 'DealCanceled');
+            // })
+          })
+        })
+      })
+    })
   })
 })
