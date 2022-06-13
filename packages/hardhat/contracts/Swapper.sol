@@ -87,12 +87,12 @@ contract Swapper is ISwapper {
 
         if (msg.sender == deal.account1) {
             require(!deal.account1Approved, 'Swapper: caller has already approved the deal');
-            _transfer(msg.sender, deal.token1, deal.amount1);
             deal.account1Approved = true;
+            _transfer(msg.sender, deal.token1, deal.amount1);
         } else {
             require(!deal.account2Approved, 'Swapper: caller has already approved the deal');
-            _transfer(msg.sender, deal.token2, deal.amount2);
             deal.account2Approved = true;
+            _transfer(msg.sender, deal.token2, deal.amount2);
         }
 
         if (deal.account1Approved && deal.account2Approved) {
@@ -109,14 +109,14 @@ contract Swapper is ISwapper {
         require(deal.status == Status.Pending, 'Swapper: deal is no longer pending');
         require(block.number >= deal.startDate + deal.deadline, 'Swapper: acceptance period is not over');
 
+        deal.status = Status.Canceled;
+
         if (deal.account1Approved) {
             _withdraw(deal.account1, deal.account1, deal.token1, deal.amount1);
         }
         if (deal.account2Approved) {
             _withdraw(deal.account2, deal.account2, deal.token2, deal.amount2);
         }
-
-        deal.status = Status.Canceled;
 
         emit DealCanceled(id, msg.sender);
 
@@ -190,10 +190,10 @@ contract Swapper is ISwapper {
         uint256 allowance = IERC20(token).allowance(account, address(this));
         require(allowance >= amount, 'Swapper: needs allowance');
 
+        _balances[account][token] += amount;
+
         bool success = IERC20(token).transferFrom(account, address(this), amount);
         require(success, 'Swapper: token transfer has failed');
-
-        _balances[account][token] = amount;
     }
 
     function _withdraw(
