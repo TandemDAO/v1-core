@@ -10,7 +10,7 @@ interface ISwapper {
     }
 
     event DealCreated(
-        uint256 dealId,
+        uint256 indexed dealId,
         address executor1,
         address account1,
         address token1,
@@ -24,11 +24,11 @@ interface ISwapper {
         uint256 deadline
     );
 
-    event DealApproved(uint256 dealId, address caller);
+    event DealApproved(uint256 indexed dealId, address caller);
 
-    event DealClaimed(uint256 dealId, address caller);
+    event DealClaimed(uint256 indexed dealId, address caller);
 
-    event DealCanceled(uint256 dealId, address caller);
+    event DealCanceled(uint256 indexed dealId, address caller);
 
     /**
      * @dev Creates a new Deal after Transfer at address `token1`
