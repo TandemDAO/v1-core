@@ -5,8 +5,8 @@ import '@openzeppelin/contracts/governance/Governor.sol';
 import '@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol';
 import '@openzeppelin/contracts/governance/extensions/GovernorVotes.sol';
 
-contract GovernanceA is Governor, GovernorCountingSimple, GovernorVotes {
-    constructor(IVotes _token) Governor('GovernorA') GovernorVotes(_token) {}
+contract Governance is Governor, GovernorCountingSimple, GovernorVotes {
+    constructor(string memory _name, IVotes _token) Governor(_name) GovernorVotes(_token) {}
 
     function votingDelay() public pure override returns (uint256) {
         return 0; // 1 block
