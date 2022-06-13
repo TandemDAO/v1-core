@@ -163,6 +163,25 @@ contract Swapper is ISwapper {
         return amount;
     }
 
+    function changeExecutor(uint256 id, address _executor) external override returns (bool) {
+        Deal storage deal = _deals[id];
+
+        require(msg.sender == deal.account1 || msg.sender == deal.account2, 'Swapper: caller not allowed');
+        address oldExecutor;
+
+        if (msg.sender == deal.account1) {
+            oldExecutor = deal.executor1;
+            deal.executor1 = _executor;
+        }
+        if (msg.sender == deal.account2) {
+            oldExecutor = deal.executor2;
+            deal.executor2 = _executor;
+        }
+        emit ExecutorChanged(id, msg.sender, oldExecutor, _executor);
+
+        return true;
+    }
+
     function _transfer(
         address account,
         address token,

@@ -283,4 +283,33 @@ describe('Swapper', function () {
       })
     })
   })
+
+  describe('change executor', () => {
+    beforeEach(async () => {
+      await swapper
+        .connect(proposer)
+        .propose(
+          executorA.address,
+          holderA.address,
+          tokenA.address,
+          tokenASwapAmount,
+          executorB.address,
+          holderB.address,
+          tokenB.address,
+          tokenBSwapAmount,
+          2,
+          10,
+        )
+    })
+    it('should emit ExecutorChanged', async () => {
+      await expect(swapper.connect(holderA).changeExecutor(0, proposer.address))
+        .to.emit(swapper, 'ExecutorChanged')
+        .withArgs(0, holderA.address, executorA.address, proposer.address)
+    })
+    it('should authorize only accounts to change executors', async () => {
+      await expect(swapper.connect(proposer).changeExecutor(0, proposer.address)).to.be.revertedWith(
+        'Swapper: caller not allowed',
+      )
+    })
+  })
 })
