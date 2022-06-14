@@ -34,7 +34,6 @@
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^16.2.4",
-    "dotenv": "^16.0.1",
     "husky": "^8.0.1",
     "lint-staged": "^12.4.1",
     "prettier": "^2.6.2",
