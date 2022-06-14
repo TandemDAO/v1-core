@@ -30,6 +30,8 @@ interface ISwapper {
 
     event DealCanceled(uint256 indexed dealId, address caller);
 
+    event ExecutorChanged(uint dealId, address caller, address oldExecutor, address newExecutor);
+
     /**
      * @dev Creates a new Deal after Transfer at address `token1`
      * of `amount1` tokens from the caller's account to Swapper contract.
@@ -89,4 +91,16 @@ interface ISwapper {
      * Emits a {DealCanceled} event.
      */
     function cancel(uint256 id) external returns (bool);
+
+    /**
+     * @dev Change the executor of a specific Deal.
+     * This requires only one of the account defined in the Deal to be
+     * the function caller. Account can only change their respective
+     * executor.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits a {ExecutorChanged} event.
+     */
+    function changeExecutor(uint256 id, address executor) external returns (bool);
 }
