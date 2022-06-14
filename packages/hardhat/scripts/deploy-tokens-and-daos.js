@@ -25,14 +25,9 @@ async function main() {
   await governorB.deployed()
   console.log('Governor B deployed to:', governorB.address)
 
-  const Swapper = await hre.ethers.getContractFactory('Swapper')
-  const swapper = await Swapper.deploy()
-  await swapper.deployed()
-  console.log('Swapper deployed to: ', swapper.address)
-
   /*
     ================= Mint tokens to Governance contracts ===============
-    */
+  */
 
   await tokenA.mint(governorA.address, 1000000)
   await tokenB.mint(governorB.address, 1000000)
