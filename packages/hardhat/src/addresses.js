@@ -1,5 +1,8 @@
-// This address points to a dummy ERC-20 contract. Replace it with your own smart contracts.
 const addresses = {
-  ceaErc20: '0xa6dF0C88916f3e2831A329CE46566dDfBe9E74b7',
+  swapper: '0xa6dF0C88916f3e2831A329CE46566dDfBe9E74b7',
+  tokenA: '0x9D4c1981915D330836b687259a021A1968489637',
+  tokenB: '0x9a488e4647b0B5d5E7fa2b00Fcd99a99F52351Ec',
+  govA: '0x1F1c1e736169822858B2d4786eb97239D361d9F0',
+  govB: '0x6c7b8C5Bb19Aea622a2C978fa8d945c8094E8398',
 }
 export default addresses

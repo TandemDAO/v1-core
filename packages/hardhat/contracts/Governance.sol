@@ -9,11 +9,11 @@ contract Governance is Governor, GovernorCountingSimple, GovernorVotes {
     constructor(string memory _name, IVotes _token) Governor(_name) GovernorVotes(_token) {}
 
     function votingDelay() public pure override returns (uint256) {
-        return 0; // 1 block
+        return 0; // blocks
     }
 
     function votingPeriod() public pure override returns (uint256) {
-        return 4; // 1 week
+        return 40; //  blocks
     }
 
     function quorum(uint256 blockNumber) public pure override returns (uint256) {

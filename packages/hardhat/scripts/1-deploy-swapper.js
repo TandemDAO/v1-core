@@ -5,6 +5,7 @@ async function main() {
   const swapper = await Swapper.deploy()
   await swapper.deployed()
   console.log('Swapper deployed to: ', swapper.address)
+  console.log('IMPORTANT: Add swapper address to /packages/hardhat/src/addresses.js')
 }
 
 main()

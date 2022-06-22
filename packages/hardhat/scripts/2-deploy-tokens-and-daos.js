@@ -31,6 +31,8 @@ async function main() {
 
   await tokenA.mint(governorA.address, 1000000)
   await tokenB.mint(governorB.address, 1000000)
+
+  console.log('IMPORTANT: Add token and governor addresses to /packages/hardhat/src/addresses.js')
 }
 
 // We recommend this pattern to be able to use async/await everywhere
